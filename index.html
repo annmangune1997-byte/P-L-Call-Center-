@@ -1,101 +1,176 @@
-# 📑 Sample P&L Statement: Call Center Home Delivery Service  
-**For the Quarter Ending September 30, 2025**
+````html name=crispy_chicken_pnl_dashboard.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Crispy Chicken Call Center P&L Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; background: #f9fafc; color: #212121; }
+    .container { max-width: 1200px; margin: 40px auto; padding: 34px; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px #dedede;}
+    h1 { color: #db2d12; letter-spacing: 2px; margin-bottom:20px;}
+    h2 { margin-top: 38px; font-size:1.25em; color: #1c2833;}
+    .pnl-table { border-collapse: collapse; width:100%; margin-top:18px;}
+    .pnl-table th, .pnl-table td { padding: 9px 8px; border-bottom: 1px solid #e3e3e3; text-align:right; }
+    .pnl-table th {background: #f9bd24; color: #fff !important;}
+    .pnl-table tr td:first-child, .pnl-table th:first-child { text-align:left; }
+    .section-title { font-weight:700; font-size:1.09em; background:#e8fcf6; padding:8px 0;}
+    .net-earnings { color: #228c22; font-weight: bold;}
+    .negative { color: #ca2d2d;}
+    .axis-label {font-size: 0.95em;}
+    .chart-wrap { margin-top: 28px; background: #eaf3ff; border-radius: 8px; padding:16px;}
+    .input-controls { margin:14px 0;}
+    label { font-weight: 600; margin-right: 8px;}
+    input[type="number"] { padding: 4px 6px; border-radius:5px; border:1px solid #ccc;}
+    button { background:#db2d12; color:#fff; font-weight:700; padding:8px 20px; border-radius:7px; border:none; box-shadow:0 1px 3px #aab6be; font-size:1em; cursor:pointer; margin-right:10px; }
+    button[disabled] {background:#eda899;}
+    .footer {text-align: center; font-size:1.04em; color:#db2d12; margin:36px 0 0 0;}
+    @media (max-width:820px) {
+      .container {padding:10px;}
+      h1 {font-size:1.15em;}
+      .pnl-table th, .pnl-table td {font-size:0.95em;padding:6px;}
+      .chart-wrap {padding:4px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐔 Crispy Chicken Call Center<br>Profit & Loss (P&L) Dashboard</h1>
+    <div class="input-controls">
+      <label for="year_select">Select Year:</label>
+      <select id="year_select">
+        <option value="2014">2014</option>
+        <option value="2015">2015</option>
+        <option value="2016">2016</option>
+        <option value="2017">2017</option>
+        <option value="2018">2018</option>
+      </select>
+      <button onclick="printReport()">Print Report</button>
+    </div>
+    <div>
+      <h2>Annual P&L Statement [USD $ millions]</h2>
+      <table class="pnl-table" id="pnl_table">
+        <!-- Table content will be injected here -->
+      </table>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="profitChart" height="140"></canvas>
+    </div>
+    <div class="footer">Data: Audited Company P&L, 2014-2018. For analysis, reporting, and export.</div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Raw Data Structure
+    const pnlData = {
+      years: ['2014', '2015', '2016', '2017', '2018'],
+      RevenueStream1: [7692.6, 7814.6, 7938.7, 8064.6, 8192.6],
+      RevenueStream2: [1907.8, 1938.0, 1968.8, 2000.0, 2031.8],
+      ReturnsRefundsDiscounts: [-275.3, -279.7, -284.1, -288.6, -293.2],
+      TotalNetRevenue: [9325.0, 9473.0, 9623.3, 9776.0, 9931.2],
+      CostOfGoodsSold: [3533.2, 3589.3, 3646.3, 3704.1, 3762.9],
+      GrossProfit: [5791.8, 5883.7, 5977.0, 6071.9, 6168.3],
+      Expenses: {
+        AdvertisingPromotion: [250.6, 255.6, 260.7, 265.9, 271.1],
+        DepreciationAmortization: [1456.8, 1485.8, 1515.3, 1545.4, 1576.1],
+        Insurance: [14.7, 15.0, 15.3, 15.6, 15.9],
+        Maintenance: [76.4, 77.9, 79.5, 81.0, 82.6],
+        OfficeSupplies: [37.5, 38.3, 39.0, 39.8, 40.6],
+        Rent: [77.7, 79.3, 80.9, 82.5, 84.1],
+        SalariesBenefitsWages: [3366.7, 3433.6, 3501.8, 3571.4, 3642.3],
+        Telecommunication: [20.1, 20.5, 20.9, 21.3, 21.7],
+        Travel: [30.8, 31.4, 32.1, 32.7, 33.3],
+        Utilities: [18.8, 19.1, 19.5, 19.9, 20.3],
+        OtherExpense1: [50.9, 51.9, 53.0, 54.0, 55.1],
+        OtherExpense2: [0, 0, 0, 0, 0]
+      },
+      TotalExpenses: [5401.1, 5508.4, 5617.9, 5729.5, 5843.4],
+      EBIT: [390.6, 375.2, 359.1, 342.4, 324.9],
+      InterestExpense: [30.0, 2.5, 2.5, 2.5, 2.5],
+      EarningsBeforeTaxes: [360.6, 372.7, 356.6, 339.9, 322.4],
+      IncomeTaxes: [108.2, 111.8, 107.0, 102.0, 96.7],
+      NetEarnings: [252.4, 260.9, 249.7, 237.9, 225.7]
+    };
+    const expenseNames = [
+      "Advertising & Promotion","Depreciation & Amortization","Insurance","Maintenance",
+      "Office Supplies","Rent","Salaries, Benefits & Wages","Telecommunication",
+      "Travel","Utilities","Other Expense 1","Other Expense 2"
+    ];
+    const expenseKeys = [
+      "AdvertisingPromotion","DepreciationAmortization","Insurance","Maintenance",
+      "OfficeSupplies","Rent","SalariesBenefitsWages","Telecommunication",
+      "Travel","Utilities","OtherExpense1","OtherExpense2"
+    ];
 
----
+    function renderTable(yearIdx) {
+      let table = `
+        <tr><th>Line Item</th>
+            <th class="axis-label">${pnlData.years[yearIdx]}</th>
+        </tr>
+        <tr><td class="section-title">Revenue</td><td></td></tr>
+        <tr><td>Revenue stream 1</td><td>${pnlData.RevenueStream1[yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>
+        <tr><td>Revenue stream 2</td><td>${pnlData.RevenueStream2[yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>
+        <tr><td class="negative">Returns, Refunds, Discounts</td><td>${pnlData.ReturnsRefundsDiscounts[yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>
+        <tr><td><strong>Total Net Revenue</strong></td><td><strong>${pnlData.TotalNetRevenue[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</strong></td></tr>
+        <tr><td class="section-title">COGS</td><td></td></tr>
+        <tr><td>Cost of Goods Sold</td><td>${pnlData.CostOfGoodsSold[yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>
+        <tr><td><strong>Gross Profit</strong></td><td><strong>${pnlData.GrossProfit[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</strong></td></tr>
+        <tr><td class="section-title">Expenses</td><td></td></tr>
+        ${expenseNames.map((n,i)=>`<tr><td>${n}</td><td>${pnlData.Expenses[expenseKeys[i]][yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>`).join('')}
+        <tr><td><strong>Total Expenses</strong></td><td><strong>${pnlData.TotalExpenses[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</strong></td></tr>
+        <tr><td class="section-title">Earnings & Taxes</td><td></td></tr>
+        <tr><td>Earnings Before Interest & Taxes</td><td>${pnlData.EBIT[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</td></tr>
+        <tr><td>Interest Expense</td><td>${pnlData.InterestExpense[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</td></tr>
+        <tr><td>Earnings Before Taxes</td><td>${pnlData.EarningsBeforeTaxes[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</td></tr>
+        <tr><td>Income Taxes</td><td>${pnlData.IncomeTaxes[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</td></tr>
+        <tr>
+          <td class="net-earnings"><strong>Net Earnings</strong></td>
+          <td class="net-earnings"><strong>${pnlData.NetEarnings[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</strong></td>
+        </tr>
+      `;
+      document.getElementById('pnl_table').innerHTML = table;
+    }
 
-## 1️⃣ REVENUE
+    function plotChart() {
+      const c = document.getElementById('profitChart').getContext('2d');
+      if(window.profitChart) window.profitChart.destroy();
+      window.profitChart = new Chart(c, {
+        type: 'line',
+        data: {
+          labels: pnlData.years,
+          datasets: [
+            {
+              label: "Gross Profit",
+              data: pnlData.GrossProfit,
+              borderColor: "#db2d12", backgroundColor: "rgba(219,45,18,0.1)", fill: true, tension:0.25
+            },
+            {
+              label: "Net Earnings",
+              data: pnlData.NetEarnings,
+              borderColor: "#228c22",backgroundColor: "rgba(34,140,34,0.07)", fill: true, tension:0.25
+            }
+          ],
+        },
+        options: {
+          plugins: {legend:{position:'top'}},
+          scales:{
+            y:{title:{display:true,text:'USD $ millions'},beginAtZero:true}
+          }
+        }
+      });
+    }
 
-| Line Item | Amount ($) |
-|----------------------------|-----------|
-| Delivery Service Fees      | 120,000   |
-| Product Sales (if applicable) | 450,000   |
-| **Total Revenue**              | **570,000**   |
+    function printReport() {
+      window.print();
+    }
 
----
+    document.getElementById('year_select').addEventListener('change', function() {
+      renderTable(this.selectedIndex);
+    });
 
-## 2️⃣ COST OF GOODS SOLD (COGS) / DIRECT COSTS
-
-| Line Item                        | Amount ($) |
-|-----------------------------------|-----------|
-| Direct Labor (Drivers, Couriers) | 85,000     |
-| Vehicle Fuel & Maintenance        | 30,000     |
-| Packaging and Supplies            | 15,000     |
-| **Total COGS**                    | **130,000** |
-
----
-
-## 3️⃣ GROSS PROFIT
-
-| Description           | Amount ($) |
-|-----------------------|-----------|
-| **Gross Profit**      | **440,000**  |
-
----
-
-## 4️⃣ OPERATING EXPENSES (OPEX)
-
-| Line Item                               | Amount ($) |
-|-----------------------------------------|-----------|
-| Salaries & Wages (Call Center/Admin)    | 150,000   |
-| Telecommunications & Software           | 25,000    |
-| Rent (Office & Warehouse)               | 35,000    |
-| Utilities                               | 8,000     |
-| Insurance                               | 12,000    |
-| Marketing & Advertising                 | 10,000    |
-| Depreciation                            | 15,000    |
-| Other General & Admin Expenses          | 7,000     |
-| **Total Operating Expenses**            | **262,000** |
-
----
-
-## 5️⃣ OPERATING INCOME
-
-| Description         | Amount ($)  |
-|---------------------|-------------|
-| **Operating Income**| **178,000** |
-
----
-
-## 6️⃣ OTHER INCOME AND EXPENSES
-
-| Line Item        | Amount ($) |
-|------------------|-----------|
-| Interest Expense | 5,000     |
-| Interest Income  | (1,000)   |
-| **Net Other Exp.** | **4,000**   |
-
----
-
-## 7️⃣ EARNINGS BEFORE TAX (EBT)
-
-| Description        | Amount ($) |
-|--------------------|------------|
-| **EBT**            | **174,000** |
-
----
-
-## 8️⃣ INCOME TAX EXPENSE
-
-| Calculation (e.g. 21%) | Amount ($) |
-|------------------------|------------|
-| 21% x $174,000         | 36,540     |
-
----
-
-## 9️⃣ NET INCOME (NET PROFIT)
-
-| Description  | Amount ($)  |
-|--------------|-------------|
-| **Net Income** | **137,460** |
-
----
-
-### 🔍 Key Notes
-- **Gross Profit Margin:** 77.2%  
-- **Net Profit Margin:** 24.1%  
-- All direct and indirect costs distinctly categorized.
-- Layout suitable for managerial review & financial comparison.
-
----
-
-*Prepared for executive and operational review. For export as PDF, Excel, or CSV, use dashboard export features.*
+    // Initialize UI
+    renderTable(0);
+    plotChart();
+  </script>
+</body>
+</html>
+````
