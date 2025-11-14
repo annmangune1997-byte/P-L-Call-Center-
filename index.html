@@ -1,176 +1,194 @@
-````html name=crispy_chicken_pnl_dashboard.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Crispy Chicken Call Center P&L Dashboard</title>
+  <title>Call Center Home Delivery - P&L Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; background: #f9fafc; color: #212121; }
-    .container { max-width: 1200px; margin: 40px auto; padding: 34px; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px #dedede;}
-    h1 { color: #db2d12; letter-spacing: 2px; margin-bottom:20px;}
-    h2 { margin-top: 38px; font-size:1.25em; color: #1c2833;}
-    .pnl-table { border-collapse: collapse; width:100%; margin-top:18px;}
-    .pnl-table th, .pnl-table td { padding: 9px 8px; border-bottom: 1px solid #e3e3e3; text-align:right; }
-    .pnl-table th {background: #f9bd24; color: #fff !important;}
-    .pnl-table tr td:first-child, .pnl-table th:first-child { text-align:left; }
-    .section-title { font-weight:700; font-size:1.09em; background:#e8fcf6; padding:8px 0;}
-    .net-earnings { color: #228c22; font-weight: bold;}
-    .negative { color: #ca2d2d;}
-    .axis-label {font-size: 0.95em;}
-    .chart-wrap { margin-top: 28px; background: #eaf3ff; border-radius: 8px; padding:16px;}
-    .input-controls { margin:14px 0;}
-    label { font-weight: 600; margin-right: 8px;}
-    input[type="number"] { padding: 4px 6px; border-radius:5px; border:1px solid #ccc;}
-    button { background:#db2d12; color:#fff; font-weight:700; padding:8px 20px; border-radius:7px; border:none; box-shadow:0 1px 3px #aab6be; font-size:1em; cursor:pointer; margin-right:10px; }
-    button[disabled] {background:#eda899;}
-    .footer {text-align: center; font-size:1.04em; color:#db2d12; margin:36px 0 0 0;}
-    @media (max-width:820px) {
-      .container {padding:10px;}
-      h1 {font-size:1.15em;}
-      .pnl-table th, .pnl-table td {font-size:0.95em;padding:6px;}
-      .chart-wrap {padding:4px;}
+    body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; background: #f9fafc; color: #232323; }
+    .container { max-width: 1080px; margin: 40px auto; padding: 32px; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px #dedede;}
+    h1 { color: #db2d12; margin-bottom:20px;}
+    h2 { border-bottom: 2px solid #ffd56c; padding-bottom: 7px; margin-top: 36px; color: #1c2833;}
+    .input-section, .button-section, .result-section, .dashboard { margin-top: 34px; }
+    label { font-weight: 600; margin-top:12px; display:block;}
+    input[type="text"], input[type="number"] { padding: 6px 10px; width: 200px; margin: 3px 0 14px 0; border: 1.5px solid #ccd; border-radius: 6px; font-size:1em;}
+    textarea { width: 95%; min-height:100px; padding:8px; border-radius:7px; border: 1.5px solid #ccd;}
+    .form-fields { display:flex; flex-wrap:wrap; gap:30px;}
+    .form-group { flex:1 1 220px; min-width:200px; }
+    .button-section button, .dashboard button { padding:10px 28px; font-weight:700; background:#db2d12; color:#fff; border:none; border-radius:7px; box-shadow:0 1px 3px #aab6be; font-size:1.1em; cursor:pointer; margin-top:12px;}
+    .button-section button[disabled] { background: #eda899; cursor: not-allowed;}
+    .result-section { background: #f4fafb; border-radius:7px; padding:20px;}
+    .dashboard { background: #eaf3ff; border-radius: 7px; padding: 20px; margin-top: 28px;}
+    .dashboard h3 { color: #204280; }
+    .dashboard-table { width:100%; margin: 18px 0; border-collapse: collapse;}
+    .dashboard-table th, .dashboard-table td {padding: 9px 7px; border-bottom: 1px solid #d6d6d6; text-align:right; font-size:1.05em;}
+    .dashboard-table th {background:#f9bd24; color:#fff; text-align:left;}
+    .dashboard-table tr:last-child td {font-weight:700; background:#f6f6f6;}
+    .profit { color: #228c22; font-weight:bold;}
+    .loss { color: #ce1f1f; font-weight:bold;}
+    @media (max-width: 700px) {
+      .container {padding: 10px;}
+      h2 { font-size: 1.14em; }
+      .form-fields { flex-direction: column;}
     }
   </style>
+  <script>
+    // Helper function for currency formatting
+    function fmt(amount) {
+      return Number(amount).toLocaleString('en-US', {style:'currency', currency:'USD', minimumFractionDigits:0});
+    }
+
+    function calculatePnl() {
+      // Read values from the input form
+      let fees = Number(document.getElementById('delivery_fees').value) || 0;
+      let sales = Number(document.getElementById('product_sales').value) || 0;
+      let labor = Number(document.getElementById('direct_labor').value) || 0;
+      let fuel = Number(document.getElementById('fuel_maintenance').value) || 0;
+      let packaging = Number(document.getElementById('packaging').value) || 0;
+      let salaries = Number(document.getElementById('salaries').value) || 0;
+      let telecom = Number(document.getElementById('telecom').value) || 0;
+      let rent = Number(document.getElementById('rent').value) || 0;
+      let utilities = Number(document.getElementById('utilities').value) || 0;
+      let insurance = Number(document.getElementById('insurance').value) || 0;
+      let marketing = Number(document.getElementById('marketing').value) || 0;
+      let depreciation = Number(document.getElementById('depreciation').value) || 0;
+      let other = Number(document.getElementById('other_expenses').value) || 0;
+      let interest_exp = Number(document.getElementById('interest_exp').value) || 0;
+      let interest_inc = Number(document.getElementById('interest_inc').value) || 0;
+      let tax_rate = Number(document.getElementById('tax_rate').value) || 21;
+
+      // Calculations by section
+      let total_revenue = fees + sales;
+      let total_cogs = labor + fuel + packaging;
+      let gross_profit = total_revenue - total_cogs;
+      let total_opex = salaries + telecom + rent + utilities + insurance + marketing + depreciation + other;
+      let operating_income = gross_profit - total_opex;
+      let net_other_exp = interest_exp - interest_inc;
+      let ebt = operating_income - net_other_exp;
+      let tax = Math.round(ebt * (tax_rate / 100));
+      let net_income = ebt - tax;
+
+      // Render results
+      let resultDiv = document.getElementById('dashboard');
+      resultDiv.innerHTML = `
+        <h3>Quarterly P&L Dashboard</h3>
+        <table class="dashboard-table">
+          <tr><th colspan="2">REVENUE</th></tr>
+          <tr><td>Delivery Service Fees</td><td>${fmt(fees)}</td></tr>
+          <tr><td>Product Sales</td><td>${fmt(sales)}</td></tr>
+          <tr><td style="font-weight:bold;">Total Revenue</td><td style="font-weight:bold;">${fmt(total_revenue)}</td></tr>
+          <tr><th colspan="2">COGS / Direct Costs</th></tr>
+          <tr><td>Direct Labor</td><td>${fmt(labor)}</td></tr>
+          <tr><td>Vehicle Fuel & Maintenance</td><td>${fmt(fuel)}</td></tr>
+          <tr><td>Packaging & Supplies</td><td>${fmt(packaging)}</td></tr>
+          <tr><td style="font-weight:bold;">Total COGS</td><td style="font-weight:bold;">${fmt(total_cogs)}</td></tr>
+          <tr><th colspan="2">GROSS PROFIT</th></tr>
+          <tr><td>Gross Profit</td><td>${fmt(gross_profit)}</td></tr>
+          <tr><th colspan="2">OPERATING EXPENSES</th></tr>
+          <tr><td>Salaries & Wages</td><td>${fmt(salaries)}</td></tr>
+          <tr><td>Telecommunications & Software</td><td>${fmt(telecom)}</td></tr>
+          <tr><td>Rent (Office & Warehouse)</td><td>${fmt(rent)}</td></tr>
+          <tr><td>Utilities</td><td>${fmt(utilities)}</td></tr>
+          <tr><td>Insurance</td><td>${fmt(insurance)}</td></tr>
+          <tr><td>Marketing & Advertising</td><td>${fmt(marketing)}</td></tr>
+          <tr><td>Depreciation</td><td>${fmt(depreciation)}</td></tr>
+          <tr><td>Other General & Admin</td><td>${fmt(other)}</td></tr>
+          <tr><td style="font-weight:bold;">Total Operating Expenses</td><td style="font-weight:bold;">${fmt(total_opex)}</td></tr>
+          <tr><th colspan="2">OPERATING INCOME</th></tr>
+          <tr><td>Operating Income</td><td>${fmt(operating_income)}</td></tr>
+          <tr><th colspan="2">OTHER INCOME / EXPENSES</th></tr>
+          <tr><td>Interest Expense</td><td>${fmt(interest_exp)}</td></tr>
+          <tr><td>Interest Income</td><td>(${fmt(interest_inc)})</td></tr>
+          <tr><td>Net Other Expenses</td><td>${fmt(net_other_exp)}</td></tr>
+          <tr><th colspan="2">EARNINGS BEFORE TAX (EBT)</th></tr>
+          <tr><td>EBT</td><td>${fmt(ebt)}</td></tr>
+          <tr><th colspan="2">INCOME TAX (${tax_rate}%)</th></tr>
+          <tr><td>Income Tax Expense</td><td>${fmt(tax)}</td></tr>
+          <tr><th colspan="2">NET INCOME</th></tr>
+          <tr><td class="${net_income >= 0 ? 'profit' : 'loss'}">Net Income (Profit/Loss)</td>
+            <td class="${net_income >= 0 ? 'profit' : 'loss'}">${fmt(net_income)}</td></tr>
+        </table>
+        <div style="margin-top:16px;">
+          <button onclick="window.print()">Print Report</button>
+        </div>
+      `;
+      // Show dashboard
+      resultDiv.style.display = 'block';
+    }
+
+    function clearForm() {
+      document.getElementById('pnl-form').reset();
+      document.getElementById('dashboard').style.display = 'none';
+    }
+  </script>
 </head>
 <body>
   <div class="container">
-    <h1>🐔 Crispy Chicken Call Center<br>Profit & Loss (P&L) Dashboard</h1>
-    <div class="input-controls">
-      <label for="year_select">Select Year:</label>
-      <select id="year_select">
-        <option value="2014">2014</option>
-        <option value="2015">2015</option>
-        <option value="2016">2016</option>
-        <option value="2017">2017</option>
-        <option value="2018">2018</option>
-      </select>
-      <button onclick="printReport()">Print Report</button>
+    <h1>📊 Call Center Home Delivery — P&L Dashboard</h1>
+    <div class="input-section">
+      <form id="pnl-form" onsubmit="event.preventDefault(); calculatePnl();">
+        <h2>Enter Quarterly P&L Data</h2>
+        <div class="form-fields">
+          <div class="form-group">
+            <label for="delivery_fees">Delivery Service Fees</label>
+            <input type="number" id="delivery_fees" placeholder="e.g. 120000">
+            
+            <label for="product_sales">Product Sales</label>
+            <input type="number" id="product_sales" placeholder="e.g. 450000">
+          </div>
+          <div class="form-group">
+            <label for="direct_labor">Direct Labor (Drivers/Couriers)</label>
+            <input type="number" id="direct_labor" placeholder="e.g. 85000">
+            
+            <label for="fuel_maintenance">Vehicle Fuel & Maintenance</label>
+            <input type="number" id="fuel_maintenance" placeholder="e.g. 30000">
+
+            <label for="packaging">Packaging & Supplies</label>
+            <input type="number" id="packaging" placeholder="e.g. 15000">
+          </div>
+          <div class="form-group">
+            <label for="salaries">Salaries & Wages (Call Center/Admin)</label>
+            <input type="number" id="salaries" placeholder="e.g. 150000">
+            
+            <label for="telecom">Telecommunications & Software</label>
+            <input type="number" id="telecom" placeholder="e.g. 25000">
+
+            <label for="rent">Rent (Office/Warehouse)</label>
+            <input type="number" id="rent" placeholder="e.g. 35000">
+            
+            <label for="utilities">Utilities</label>
+            <input type="number" id="utilities" placeholder="e.g. 8000">
+            
+            <label for="insurance">Insurance</label>
+            <input type="number" id="insurance" placeholder="e.g. 12000">
+            
+            <label for="marketing">Marketing & Advertising</label>
+            <input type="number" id="marketing" placeholder="e.g. 10000">
+            
+            <label for="depreciation">Depreciation</label>
+            <input type="number" id="depreciation" placeholder="e.g. 15000">
+            
+            <label for="other_expenses">Other General & Admin</label>
+            <input type="number" id="other_expenses" placeholder="e.g. 7000">
+          </div>
+          <div class="form-group">
+            <label for="interest_exp">Interest Expense</label>
+            <input type="number" id="interest_exp" placeholder="e.g. 5000">
+
+            <label for="interest_inc">Interest Income</label>
+            <input type="number" id="interest_inc" placeholder="e.g. 1000">
+            
+            <label for="tax_rate">Income Tax Rate (%)</label>
+            <input type="number" id="tax_rate" value="21" placeholder="e.g. 21">
+          </div>
+        </div>
+        <div class="button-section">
+          <button type="submit">Generate Report & Dashboard</button>
+          <button type="button" onclick="clearForm()">Clear</button>
+        </div>
+      </form>
     </div>
-    <div>
-      <h2>Annual P&L Statement [USD $ millions]</h2>
-      <table class="pnl-table" id="pnl_table">
-        <!-- Table content will be injected here -->
-      </table>
-    </div>
-    <div class="chart-wrap">
-      <canvas id="profitChart" height="140"></canvas>
-    </div>
-    <div class="footer">Data: Audited Company P&L, 2014-2018. For analysis, reporting, and export.</div>
+    <div id="dashboard" class="dashboard" style="display:none"></div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Raw Data Structure
-    const pnlData = {
-      years: ['2014', '2015', '2016', '2017', '2018'],
-      RevenueStream1: [7692.6, 7814.6, 7938.7, 8064.6, 8192.6],
-      RevenueStream2: [1907.8, 1938.0, 1968.8, 2000.0, 2031.8],
-      ReturnsRefundsDiscounts: [-275.3, -279.7, -284.1, -288.6, -293.2],
-      TotalNetRevenue: [9325.0, 9473.0, 9623.3, 9776.0, 9931.2],
-      CostOfGoodsSold: [3533.2, 3589.3, 3646.3, 3704.1, 3762.9],
-      GrossProfit: [5791.8, 5883.7, 5977.0, 6071.9, 6168.3],
-      Expenses: {
-        AdvertisingPromotion: [250.6, 255.6, 260.7, 265.9, 271.1],
-        DepreciationAmortization: [1456.8, 1485.8, 1515.3, 1545.4, 1576.1],
-        Insurance: [14.7, 15.0, 15.3, 15.6, 15.9],
-        Maintenance: [76.4, 77.9, 79.5, 81.0, 82.6],
-        OfficeSupplies: [37.5, 38.3, 39.0, 39.8, 40.6],
-        Rent: [77.7, 79.3, 80.9, 82.5, 84.1],
-        SalariesBenefitsWages: [3366.7, 3433.6, 3501.8, 3571.4, 3642.3],
-        Telecommunication: [20.1, 20.5, 20.9, 21.3, 21.7],
-        Travel: [30.8, 31.4, 32.1, 32.7, 33.3],
-        Utilities: [18.8, 19.1, 19.5, 19.9, 20.3],
-        OtherExpense1: [50.9, 51.9, 53.0, 54.0, 55.1],
-        OtherExpense2: [0, 0, 0, 0, 0]
-      },
-      TotalExpenses: [5401.1, 5508.4, 5617.9, 5729.5, 5843.4],
-      EBIT: [390.6, 375.2, 359.1, 342.4, 324.9],
-      InterestExpense: [30.0, 2.5, 2.5, 2.5, 2.5],
-      EarningsBeforeTaxes: [360.6, 372.7, 356.6, 339.9, 322.4],
-      IncomeTaxes: [108.2, 111.8, 107.0, 102.0, 96.7],
-      NetEarnings: [252.4, 260.9, 249.7, 237.9, 225.7]
-    };
-    const expenseNames = [
-      "Advertising & Promotion","Depreciation & Amortization","Insurance","Maintenance",
-      "Office Supplies","Rent","Salaries, Benefits & Wages","Telecommunication",
-      "Travel","Utilities","Other Expense 1","Other Expense 2"
-    ];
-    const expenseKeys = [
-      "AdvertisingPromotion","DepreciationAmortization","Insurance","Maintenance",
-      "OfficeSupplies","Rent","SalariesBenefitsWages","Telecommunication",
-      "Travel","Utilities","OtherExpense1","OtherExpense2"
-    ];
-
-    function renderTable(yearIdx) {
-      let table = `
-        <tr><th>Line Item</th>
-            <th class="axis-label">${pnlData.years[yearIdx]}</th>
-        </tr>
-        <tr><td class="section-title">Revenue</td><td></td></tr>
-        <tr><td>Revenue stream 1</td><td>${pnlData.RevenueStream1[yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>
-        <tr><td>Revenue stream 2</td><td>${pnlData.RevenueStream2[yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>
-        <tr><td class="negative">Returns, Refunds, Discounts</td><td>${pnlData.ReturnsRefundsDiscounts[yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>
-        <tr><td><strong>Total Net Revenue</strong></td><td><strong>${pnlData.TotalNetRevenue[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</strong></td></tr>
-        <tr><td class="section-title">COGS</td><td></td></tr>
-        <tr><td>Cost of Goods Sold</td><td>${pnlData.CostOfGoodsSold[yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>
-        <tr><td><strong>Gross Profit</strong></td><td><strong>${pnlData.GrossProfit[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</strong></td></tr>
-        <tr><td class="section-title">Expenses</td><td></td></tr>
-        ${expenseNames.map((n,i)=>`<tr><td>${n}</td><td>${pnlData.Expenses[expenseKeys[i]][yearIdx].toLocaleString('en-US', {minimumFractionDigits:1})}</td></tr>`).join('')}
-        <tr><td><strong>Total Expenses</strong></td><td><strong>${pnlData.TotalExpenses[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</strong></td></tr>
-        <tr><td class="section-title">Earnings & Taxes</td><td></td></tr>
-        <tr><td>Earnings Before Interest & Taxes</td><td>${pnlData.EBIT[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</td></tr>
-        <tr><td>Interest Expense</td><td>${pnlData.InterestExpense[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</td></tr>
-        <tr><td>Earnings Before Taxes</td><td>${pnlData.EarningsBeforeTaxes[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</td></tr>
-        <tr><td>Income Taxes</td><td>${pnlData.IncomeTaxes[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</td></tr>
-        <tr>
-          <td class="net-earnings"><strong>Net Earnings</strong></td>
-          <td class="net-earnings"><strong>${pnlData.NetEarnings[yearIdx].toLocaleString('en-US',{minimumFractionDigits:1})}</strong></td>
-        </tr>
-      `;
-      document.getElementById('pnl_table').innerHTML = table;
-    }
-
-    function plotChart() {
-      const c = document.getElementById('profitChart').getContext('2d');
-      if(window.profitChart) window.profitChart.destroy();
-      window.profitChart = new Chart(c, {
-        type: 'line',
-        data: {
-          labels: pnlData.years,
-          datasets: [
-            {
-              label: "Gross Profit",
-              data: pnlData.GrossProfit,
-              borderColor: "#db2d12", backgroundColor: "rgba(219,45,18,0.1)", fill: true, tension:0.25
-            },
-            {
-              label: "Net Earnings",
-              data: pnlData.NetEarnings,
-              borderColor: "#228c22",backgroundColor: "rgba(34,140,34,0.07)", fill: true, tension:0.25
-            }
-          ],
-        },
-        options: {
-          plugins: {legend:{position:'top'}},
-          scales:{
-            y:{title:{display:true,text:'USD $ millions'},beginAtZero:true}
-          }
-        }
-      });
-    }
-
-    function printReport() {
-      window.print();
-    }
-
-    document.getElementById('year_select').addEventListener('change', function() {
-      renderTable(this.selectedIndex);
-    });
-
-    // Initialize UI
-    renderTable(0);
-    plotChart();
-  </script>
 </body>
 </html>
-````
