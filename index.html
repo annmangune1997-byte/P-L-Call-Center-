@@ -1,194 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Call Center Home Delivery - P&L Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; background: #f9fafc; color: #232323; }
-    .container { max-width: 1080px; margin: 40px auto; padding: 32px; background: #fff; border-radius: 10px; box-shadow: 0 2px 16px #dedede;}
-    h1 { color: #db2d12; margin-bottom:20px;}
-    h2 { border-bottom: 2px solid #ffd56c; padding-bottom: 7px; margin-top: 36px; color: #1c2833;}
-    .input-section, .button-section, .result-section, .dashboard { margin-top: 34px; }
-    label { font-weight: 600; margin-top:12px; display:block;}
-    input[type="text"], input[type="number"] { padding: 6px 10px; width: 200px; margin: 3px 0 14px 0; border: 1.5px solid #ccd; border-radius: 6px; font-size:1em;}
-    textarea { width: 95%; min-height:100px; padding:8px; border-radius:7px; border: 1.5px solid #ccd;}
-    .form-fields { display:flex; flex-wrap:wrap; gap:30px;}
-    .form-group { flex:1 1 220px; min-width:200px; }
-    .button-section button, .dashboard button { padding:10px 28px; font-weight:700; background:#db2d12; color:#fff; border:none; border-radius:7px; box-shadow:0 1px 3px #aab6be; font-size:1.1em; cursor:pointer; margin-top:12px;}
-    .button-section button[disabled] { background: #eda899; cursor: not-allowed;}
-    .result-section { background: #f4fafb; border-radius:7px; padding:20px;}
-    .dashboard { background: #eaf3ff; border-radius: 7px; padding: 20px; margin-top: 28px;}
-    .dashboard h3 { color: #204280; }
-    .dashboard-table { width:100%; margin: 18px 0; border-collapse: collapse;}
-    .dashboard-table th, .dashboard-table td {padding: 9px 7px; border-bottom: 1px solid #d6d6d6; text-align:right; font-size:1.05em;}
-    .dashboard-table th {background:#f9bd24; color:#fff; text-align:left;}
-    .dashboard-table tr:last-child td {font-weight:700; background:#f6f6f6;}
-    .profit { color: #228c22; font-weight:bold;}
-    .loss { color: #ce1f1f; font-weight:bold;}
-    @media (max-width: 700px) {
-      .container {padding: 10px;}
-      h2 { font-size: 1.14em; }
-      .form-fields { flex-direction: column;}
-    }
-  </style>
-  <script>
-    // Helper function for currency formatting
-    function fmt(amount) {
-      return Number(amount).toLocaleString('en-US', {style:'currency', currency:'USD', minimumFractionDigits:0});
-    }
-
-    function calculatePnl() {
-      // Read values from the input form
-      let fees = Number(document.getElementById('delivery_fees').value) || 0;
-      let sales = Number(document.getElementById('product_sales').value) || 0;
-      let labor = Number(document.getElementById('direct_labor').value) || 0;
-      let fuel = Number(document.getElementById('fuel_maintenance').value) || 0;
-      let packaging = Number(document.getElementById('packaging').value) || 0;
-      let salaries = Number(document.getElementById('salaries').value) || 0;
-      let telecom = Number(document.getElementById('telecom').value) || 0;
-      let rent = Number(document.getElementById('rent').value) || 0;
-      let utilities = Number(document.getElementById('utilities').value) || 0;
-      let insurance = Number(document.getElementById('insurance').value) || 0;
-      let marketing = Number(document.getElementById('marketing').value) || 0;
-      let depreciation = Number(document.getElementById('depreciation').value) || 0;
-      let other = Number(document.getElementById('other_expenses').value) || 0;
-      let interest_exp = Number(document.getElementById('interest_exp').value) || 0;
-      let interest_inc = Number(document.getElementById('interest_inc').value) || 0;
-      let tax_rate = Number(document.getElementById('tax_rate').value) || 21;
-
-      // Calculations by section
-      let total_revenue = fees + sales;
-      let total_cogs = labor + fuel + packaging;
-      let gross_profit = total_revenue - total_cogs;
-      let total_opex = salaries + telecom + rent + utilities + insurance + marketing + depreciation + other;
-      let operating_income = gross_profit - total_opex;
-      let net_other_exp = interest_exp - interest_inc;
-      let ebt = operating_income - net_other_exp;
-      let tax = Math.round(ebt * (tax_rate / 100));
-      let net_income = ebt - tax;
-
-      // Render results
-      let resultDiv = document.getElementById('dashboard');
-      resultDiv.innerHTML = `
-        <h3>Quarterly P&L Dashboard</h3>
-        <table class="dashboard-table">
-          <tr><th colspan="2">REVENUE</th></tr>
-          <tr><td>Delivery Service Fees</td><td>${fmt(fees)}</td></tr>
-          <tr><td>Product Sales</td><td>${fmt(sales)}</td></tr>
-          <tr><td style="font-weight:bold;">Total Revenue</td><td style="font-weight:bold;">${fmt(total_revenue)}</td></tr>
-          <tr><th colspan="2">COGS / Direct Costs</th></tr>
-          <tr><td>Direct Labor</td><td>${fmt(labor)}</td></tr>
-          <tr><td>Vehicle Fuel & Maintenance</td><td>${fmt(fuel)}</td></tr>
-          <tr><td>Packaging & Supplies</td><td>${fmt(packaging)}</td></tr>
-          <tr><td style="font-weight:bold;">Total COGS</td><td style="font-weight:bold;">${fmt(total_cogs)}</td></tr>
-          <tr><th colspan="2">GROSS PROFIT</th></tr>
-          <tr><td>Gross Profit</td><td>${fmt(gross_profit)}</td></tr>
-          <tr><th colspan="2">OPERATING EXPENSES</th></tr>
-          <tr><td>Salaries & Wages</td><td>${fmt(salaries)}</td></tr>
-          <tr><td>Telecommunications & Software</td><td>${fmt(telecom)}</td></tr>
-          <tr><td>Rent (Office & Warehouse)</td><td>${fmt(rent)}</td></tr>
-          <tr><td>Utilities</td><td>${fmt(utilities)}</td></tr>
-          <tr><td>Insurance</td><td>${fmt(insurance)}</td></tr>
-          <tr><td>Marketing & Advertising</td><td>${fmt(marketing)}</td></tr>
-          <tr><td>Depreciation</td><td>${fmt(depreciation)}</td></tr>
-          <tr><td>Other General & Admin</td><td>${fmt(other)}</td></tr>
-          <tr><td style="font-weight:bold;">Total Operating Expenses</td><td style="font-weight:bold;">${fmt(total_opex)}</td></tr>
-          <tr><th colspan="2">OPERATING INCOME</th></tr>
-          <tr><td>Operating Income</td><td>${fmt(operating_income)}</td></tr>
-          <tr><th colspan="2">OTHER INCOME / EXPENSES</th></tr>
-          <tr><td>Interest Expense</td><td>${fmt(interest_exp)}</td></tr>
-          <tr><td>Interest Income</td><td>(${fmt(interest_inc)})</td></tr>
-          <tr><td>Net Other Expenses</td><td>${fmt(net_other_exp)}</td></tr>
-          <tr><th colspan="2">EARNINGS BEFORE TAX (EBT)</th></tr>
-          <tr><td>EBT</td><td>${fmt(ebt)}</td></tr>
-          <tr><th colspan="2">INCOME TAX (${tax_rate}%)</th></tr>
-          <tr><td>Income Tax Expense</td><td>${fmt(tax)}</td></tr>
-          <tr><th colspan="2">NET INCOME</th></tr>
-          <tr><td class="${net_income >= 0 ? 'profit' : 'loss'}">Net Income (Profit/Loss)</td>
-            <td class="${net_income >= 0 ? 'profit' : 'loss'}">${fmt(net_income)}</td></tr>
-        </table>
-        <div style="margin-top:16px;">
-          <button onclick="window.print()">Print Report</button>
-        </div>
-      `;
-      // Show dashboard
-      resultDiv.style.display = 'block';
-    }
-
-    function clearForm() {
-      document.getElementById('pnl-form').reset();
-      document.getElementById('dashboard').style.display = 'none';
-    }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delivery & Call Center Financial System</title>
+<style>
+    body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
+    header { background:#b30000; color:#fff; padding:15px; text-align:center; font-size:22px; }
+    .container { padding:20px; }
+    .card { background:#fff; padding:20px; border-radius:10px; margin-bottom:20px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:left; }
+    th { background:#b30000; color:white; }
+    .section-title { font-size:20px; margin-bottom:10px; color:#b30000; font-weight:bold; }
+    .btn { padding:10px 15px; background:#b30000; color:#fff; border:none; cursor:pointer; border-radius:5px; margin-top:10px; }
+    .btn:hover { background:#7a0000; }
+    input[type="number"], input[type="text"] { width:100%; padding:6px; margin-bottom:6px; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>📊 Call Center Home Delivery — P&L Dashboard</h1>
-    <div class="input-section">
-      <form id="pnl-form" onsubmit="event.preventDefault(); calculatePnl();">
-        <h2>Enter Quarterly P&L Data</h2>
-        <div class="form-fields">
-          <div class="form-group">
-            <label for="delivery_fees">Delivery Service Fees</label>
-            <input type="number" id="delivery_fees" placeholder="e.g. 120000">
-            
-            <label for="product_sales">Product Sales</label>
-            <input type="number" id="product_sales" placeholder="e.g. 450000">
-          </div>
-          <div class="form-group">
-            <label for="direct_labor">Direct Labor (Drivers/Couriers)</label>
-            <input type="number" id="direct_labor" placeholder="e.g. 85000">
-            
-            <label for="fuel_maintenance">Vehicle Fuel & Maintenance</label>
-            <input type="number" id="fuel_maintenance" placeholder="e.g. 30000">
+<header>Crispy Chicken – Financial Management System</header>
+<div class="container">
 
-            <label for="packaging">Packaging & Supplies</label>
-            <input type="number" id="packaging" placeholder="e.g. 15000">
-          </div>
-          <div class="form-group">
-            <label for="salaries">Salaries & Wages (Call Center/Admin)</label>
-            <input type="number" id="salaries" placeholder="e.g. 150000">
-            
-            <label for="telecom">Telecommunications & Software</label>
-            <input type="number" id="telecom" placeholder="e.g. 25000">
-
-            <label for="rent">Rent (Office/Warehouse)</label>
-            <input type="number" id="rent" placeholder="e.g. 35000">
-            
-            <label for="utilities">Utilities</label>
-            <input type="number" id="utilities" placeholder="e.g. 8000">
-            
-            <label for="insurance">Insurance</label>
-            <input type="number" id="insurance" placeholder="e.g. 12000">
-            
-            <label for="marketing">Marketing & Advertising</label>
-            <input type="number" id="marketing" placeholder="e.g. 10000">
-            
-            <label for="depreciation">Depreciation</label>
-            <input type="number" id="depreciation" placeholder="e.g. 15000">
-            
-            <label for="other_expenses">Other General & Admin</label>
-            <input type="number" id="other_expenses" placeholder="e.g. 7000">
-          </div>
-          <div class="form-group">
-            <label for="interest_exp">Interest Expense</label>
-            <input type="number" id="interest_exp" placeholder="e.g. 5000">
-
-            <label for="interest_inc">Interest Income</label>
-            <input type="number" id="interest_inc" placeholder="e.g. 1000">
-            
-            <label for="tax_rate">Income Tax Rate (%)</label>
-            <input type="number" id="tax_rate" value="21" placeholder="e.g. 21">
-          </div>
-        </div>
-        <div class="button-section">
-          <button type="submit">Generate Report & Dashboard</button>
-          <button type="button" onclick="clearForm()">Clear</button>
-        </div>
-      </form>
+    <!-- Revenue Section -->
+    <div class="card">
+        <div class="section-title">Revenue Data</div>
+        <table id="revenueTable">
+            <tr>
+                <th>Category</th>
+                <th>Amount (AED)</th>
+                <th>%</th>
+                <th>Notes</th>
+            </tr>
+            <tr>
+                <td>Self Delivery</td>
+                <td><input type="number" value="1991180.28"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Online Web</td>
+                <td><input type="number" value="1500000"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Takeaway</td>
+                <td><input type="number" value="2200000"></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table> 
+        <button class="btn" onclick="calculateRevenue()">Calculate Total Revenue</button> 
+        <p><b>Total Revenue:</b> <span id="totalRevenue">0</span> AED</p> 
+    </div> 
+ 
+    <!-- Expenses Section --> 
+    <div class="card"> 
+        <div class="section-title">Direct Expenses</div> 
+        <table id="expenseTable"> 
+            <tr> 
+                <th>Expense Item</th><th>Amount (AED)</th> 
+            </tr> 
+            <tr><td>Call Center - Salaries & Allowances</td><td><input type="number" value="163389"></td></tr> 
+            <tr><td>Call Center - Salary Provision Cost</td><td><input type="number" value="26016.83"></td></tr> 
+            <tr><td>Call Center - Visa & Labour</td><td><input type="number" value="14583.33"></td></tr> 
+            <tr><td>Bike Rider - Salaries</td><td><input type="number" value="420313.6"></td></tr> 
+            <tr><td>Bike Rider - Salary Provision</td><td><input type="number" value="53553.46"></td></tr> 
+            <tr><td>Bike Rider - Visa & Labour</td><td><input type="number" value="30000"></td></tr> 
+            <tr><td>Bike Rider - Uniforms</td><td><input type="number" value="2400"></td></tr> 
+            <tr><td>Bike Rider - Telephone Card</td><td><input type="number" value="1468"></td></tr> 
+            <tr><td>Telephone & Internet</td><td><input type="number" value="31020.84"></td></tr> 
+            <tr><td>Commission on Credit Cards</td><td><input type="number" value="28453.86"></td></tr> 
+            <tr><td>Home Delivery Service Expenses</td><td><input type="number" value="305851.23"></td></tr> 
+            <tr><td>Vehicle Repair & Maintenance</td><td><input type="number" value="84901.01"></td></tr> 
+            <tr><td>Software Maintenance</td><td><input type="number" value="27539.43"></td></tr> 
+            <tr><td>Computer Accessories</td><td><input type="number" value="2055"></td></tr> 
+            <tr><td>RTA Motor Bikes Fine</td><td><input type="number" value="6398"></td></tr> 
+            <tr><td>Depreciation</td><td><input type="number" value="9118.09"></td></tr> 
+            <tr><td>Depreciation - Bikes</td><td><input type="number" value="20073.57"></td></tr> 
+        </table> 
+        <button class="btn" onclick="calculateExpenses()">Calculate Total Expenses</button>
+        <p><b>Total Expenses:</b> <span id="totalExpenses">0</span> AED</p>
     </div>
-    <div id="dashboard" class="dashboard" style="display:none"></div>
-  </div>
+
+    <!-- Summary Section -->
+    <div class="card">
+        <div class="section-title">Summary</div>
+        <p><b>Gross Profit:</b> <span id="grossProfit">0</span> AED</p>
+        <p><b>Profit %:</b> <span id="profitPercent">0</span>%</p>
+    </div>
+
+</div>
+
+<script>
+function calculateRevenue() {
+    let rows = document.querySelectorAll('#revenueTable tr');
+    let total = 0;
+
+    rows.forEach((r, i) => {
+        if (i > 0) total += parseFloat(r.children[1].children[0].value || 0);
+    });
+
+    document.getElementById('totalRevenue').innerText = total.toFixed(2);
+
+    // Update % column
+    rows.forEach((r, i) => {
+        if (i > 0) {
+            let amount = parseFloat(r.children[1].children[0].value || 0);
+            r.children[2].innerText = total > 0 ? ((amount / total) * 100).toFixed(2) + "%" : "0%";
+        }
+    });
+
+    generateSummary();
+}
+
+function calculateExpenses() {
+    let rows = document.querySelectorAll('#expenseTable tr');
+    let total = 0;
+
+    rows.forEach((r, i) => {
+        if (i > 0) total += parseFloat(r.children[1].children[0].value || 0);
+    });
+
+    document.getElementById('totalExpenses').innerText = total.toFixed(2);
+
+    generateSummary();
+}
+
+function generateSummary() {
+    let revenue = parseFloat(document.getElementById('totalRevenue').innerText || 0);
+    let expenses = parseFloat(document.getElementById('totalExpenses').innerText || 0);
+    let profit = revenue - expenses;
+    let percent = revenue > 0 ? (profit / revenue * 100) : 0;
+
+    document.getElementById('grossProfit').innerText = profit.toFixed(2);
+    document.getElementById('profitPercent').innerText = percent.toFixed(2);
+}
+</script>
 </body>
 </html>
